@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "17099969042",
+    "firebase_url": "https://v-tracker-c8eb6-default-rtdb.firebaseio.com",
+    "project_id": "v-tracker-c8eb6",
+    "storage_bucket": "v-tracker-c8eb6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17099969042:android:6e8e6887f219166f8f3ecb",
+        "android_client_info": {
+          "package_name": "com.app.vtracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe8JJzDiJY4S-lIcKBCrBzyrEOfodL1JQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

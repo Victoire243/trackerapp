@@ -12,11 +12,13 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  // Contrôleurs pour les champs de saisie (email et mot de passe)
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true;
+  final _formKey = GlobalKey<FormState>(); // Clé pour valider le formulaire
+  bool _obscureText = true; // Contrôle de la visibilité du mot de passe
 
+  // Fonction pour gérer l'authentification de l'utilisateur
   authensignin() async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -24,12 +26,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         password: _passwordController.text.toString().trim(),
       );
       if (credential.user != null) {
+        // Efface les champs après connexion réussie
         _emailController.clear();
         _passwordController.clear();
-        Navigator.pushNamed(context, '/home');
+        Navigator.pushNamed(context, '/home'); // Redirige vers l'écran d'accueil
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
+        // Affiche un message d'erreur en cas de problème
         _emailController.clear();
         _passwordController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -44,6 +48,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void dispose() {
+    // Libère les ressources des contrôleurs
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -57,13 +62,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: false, // Empêche de quitter l'écran sans confirmation
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (!didPop) {
           final navigator = Navigator.of(context);
           if (navigator.canPop()) {
             navigator.pop();
           } else {
+            // Affiche une boîte de dialogue pour confirmer la sortie
             await showModalBottomSheet(
               backgroundColor: Colors.transparent,
               context: context,
@@ -82,7 +88,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: Column(
                     children: [
                       const Text(
-                        "Voulez-vous vraiment quitter l'application ?",
+                        "Voulez-vous vraiment quitter l'application ?", // Message de confirmation
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -94,7 +100,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         children: [
                           TextButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.pop(context); // Annule la sortie
                             },
                             child: const Text(
                               "NON",
@@ -109,8 +115,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               // Fermer le modal
                               Navigator.pop(context);
                               Navigator.pop(context);
-                              // Quitter l'application
-                              SystemNavigator.pop();
+                              SystemNavigator.pop(); // Quitte l'application
                             },
                             child: const Text(
                               "OUI, QUITTER",
@@ -134,6 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         body: Container(
           height: double.infinity,
           width: double.infinity,
+          // Conception de l'écran de bienvenue
           decoration: const BoxDecoration(color: Color.fromARGB(255, 0, 124, 173)),
           child: SafeArea(
             child: Column(
@@ -143,11 +149,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   height: MediaQuery.of(context).size.height * 0.1,
                 ),
                 Image.asset(
-                  "assets/images/tracker_logo.png",
+                  "assets/images/tracker_logo.png", // Logo de l'application
                   width: MediaQuery.of(context).size.width * 0.95,
                 ),
                 const Text(
-                  "Bienvenue sur VTracker",
+                  "Bienvenue sur VTracker", // Message de bienvenue
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -157,10 +163,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const SizedBox(height: 50),
                 Expanded(
                   child: Form(
-                    key: _formKey,
+                    key: _formKey, // Formulaire pour la connexion
                     child: ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       children: <Widget>[
+                        // Champ de saisie pour l'email
                         TextFormField(
                           controller: _emailController,
                           clipBehavior: Clip.antiAlias,
@@ -191,6 +198,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
+                        // Champ de saisie pour le mot de passe
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscureText,
@@ -213,7 +221,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _obscureText = !_obscureText;
+                                  _obscureText = !_obscureText; // Alterne la visibilité
                                 });
                               },
                             ),
@@ -244,13 +252,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
+                        // Bouton pour se connecter
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
                                 // Perform login action
-                                authensignin();
+                                authensignin(); // Appelle la fonction de connexion
                               }
                             },
                             style: ButtonStyle(
@@ -273,6 +282,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        // Lien pour s'inscrire
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -288,8 +298,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 // Clear the text fields
                                 _emailController.clear();
                                 _passwordController.clear();
-                                // Navigate to the signup screen
-                                Navigator.pushNamed(context, '/signup');
+                                Navigator.pushNamed(context, '/signup'); // Redirige vers l'inscription
                               },
                               child: const Text(
                                 " Inscrivez-vous",

@@ -4,7 +4,7 @@ import 'package:trackerapp/utils/user_services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-  final String routeName = '/home';
+  final String routeName = '/home'; // Nom de la route pour cet écran
 
   @override
   // ignore: library_private_types_in_public_api
@@ -12,13 +12,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Variables pour stocker les informations utilisateur
   String userEmail = '';
   String userName = '';
   String userPhoneNumber = '';
   String userId = ''; // ID de l'utilisateur
   List<String> userVehicles = []; // Liste des véhicules de l'utilisateur
   bool isLoading = true; // Indicateur de chargement
-  String vehicleName = '';
+  String vehicleName = ''; // Nom du véhicule principal
 
   @override
   void dispose() {
@@ -28,17 +29,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeUserDetails();
+    _initializeUserDetails(); // Initialisation des détails utilisateur
   }
 
   Future<void> _initializeUserDetails() async {
     try {
+      // Récupération des informations utilisateur depuis Firebase
       userEmail = await getCurrentUserEmail();
       userName = await getCurrentUserName();
       userPhoneNumber = await getCurrentUserPhoneNumber();
       userId = await getCurrentUserId(); // Récupérer l'ID de l'utilisateur
       userVehicles = await getCurrentUserVehicles(); // Récupérer la liste des véhicules
-      vehicleName = userVehicles.isNotEmpty ? userVehicles[0] : 'Aucun véhicule'; // Vérifier si la liste est vide
+      vehicleName = userVehicles.isNotEmpty ? userVehicles[0] : 'Aucun véhicule'; // Vérifie si la liste est vide
     } catch (e) {
       // Gérer les erreurs si nécessaire
     } finally {
@@ -51,9 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: false, // Empêche de quitter l'écran sans confirmation
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (!didPop) {
+          // Affiche une boîte de dialogue pour confirmer le retour à l'écran d'accueil
           await showModalBottomSheet(
             sheetAnimationStyle: AnimationStyle(
               curve: Curves.easeInOut,
@@ -76,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                     const Text(
-                      "Voulez-vous revenir à l'écran d'accueil ?",
+                      "Voulez-vous revenir à l'écran d'accueil ?", // Message de confirmation
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -88,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.pop(context); // Annule l'action
                           },
                           child: const Text(
                             "NON",
@@ -100,12 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Se déconnecter de l'application
+                            // Déconnexion de l'utilisateur
                             logoutUser().then((_) {
                               Navigator.pop(context);
                               Navigator.pushReplacementNamed(context, '/');
                             }).catchError((error) {
-                              // Afficher un message d'erreur si la déconnexion échoue
+                              // Affiche un message d'erreur si la déconnexion échoue
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -139,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: const Color.fromARGB(255, 0, 124, 173),
           title: RichText(
             text: const TextSpan(
-              text: "V",
+              text: "V", // Partie du titre en orange
               style: TextStyle(
                 color: Colors.orange,
                 fontSize: 24,
@@ -147,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               children: <TextSpan>[
                 TextSpan(
-                  text: "Tracker",
+                  text: "Tracker", // Partie du titre en blanc
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -161,18 +164,19 @@ class _HomeScreenState extends State<HomeScreen> {
           leading: IconButton(
             icon: const Icon(Icons.help_outline_rounded, color: Colors.white),
             onPressed: () {
-              // TODO : implement help
+              // TODO : Implémenter l'aide
             },
           ),
         ),
         body: Container(
+          // Conception de l'écran principal
           height: double.infinity,
           width: double.infinity,
           decoration: const BoxDecoration(color: Colors.white),
           child: SafeArea(
             child: Column(
               children: <Widget>[
-                // profil utilisateur
+                // Profil utilisateur
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Row(
@@ -181,16 +185,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         children: [
                           const CircleAvatar(
-                            radius: 30,
+                            radius: 30, // Avatar utilisateur
                           ),
                           const SizedBox(width: 10),
                           isLoading
-                              ? const CircularProgressIndicator()
+                              ? const CircularProgressIndicator() // Indicateur de chargement
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      userName,
+                                      userName, // Nom de l'utilisateur
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 16,
@@ -205,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         const SizedBox(width: 5),
                                         Text(
-                                          vehicleName,
+                                          vehicleName, // Nom du véhicule
                                           style: const TextStyle(
                                             color: Color.fromARGB(255, 0, 124, 173),
                                             fontSize: 14,
@@ -221,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                // capteur status visualisation
+                // Indicateur de statut en ligne
                 Container(
                   height: 40,
                   width: double.infinity,
@@ -236,25 +240,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text("En ligne   ", style: TextStyle(color: Colors.white)),
                   ),
                 ),
+                // Grille des options principales
                 GridView(
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 1,
+                    crossAxisCount: 3, // Nombre de colonnes
+                    childAspectRatio: 1, // Ratio largeur/hauteur
                   ),
                   children: <Widget>[
-                    // Localiser mon vehicule
+                    // Bouton pour localiser le véhicule
                     Padding(
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/map');
+                          Navigator.pushNamed(context, '/map'); // Redirige vers l'écran de la carte
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -274,13 +280,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO : implement trouver mon véhicule
+                          // TODO : Implémenter trouver mon véhicule
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -295,18 +302,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    //  Historique
+                    // Historique
                     Padding(
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO : implement historique
+                          // TODO : Implémenter historique
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -321,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    //  Mes véhicules
+                    // Mes véhicules
                     Padding(
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
@@ -341,10 +349,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -364,13 +373,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO : implement rapports et statistiques
+                          // TODO : Implémenter rapports et statistiques
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -390,13 +400,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO : implement informations
+                          // TODO : Implémenter informations
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -416,13 +427,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO : implement mode économie d'énergie
+                          // TODO : Implémenter mode économie d'énergie
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -442,13 +454,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(5),
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO : implement nous contacter
+                          // TODO : Implémenter nous contacter
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.all(5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(5),
+                        ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[

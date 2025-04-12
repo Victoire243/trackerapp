@@ -6,7 +6,7 @@ import 'package:trackerapp/utils/signup_services.dart';
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
-  final String routeName = '/signup';
+  final String routeName = '/signup'; // Nom de la route pour cet écran
 
   @override
   // ignore: library_private_types_in_public_api
@@ -14,22 +14,26 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  // Contrôleurs pour les champs de saisie
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true;
+  final _formKey = GlobalKey<FormState>(); // Clé pour valider le formulaire
+  bool _obscureText = true; // Contrôle de la visibilité du mot de passe
 
+  // Fonction pour gérer l'inscription de l'utilisateur
   signupUser() async {
     try {
+      // Création d'un compte utilisateur avec Firebase
       // ignore: unused_local_variable
       final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.toString().trim(),
         password: _passwordController.text.toString().trim(),
       );
     } on FirebaseAuthException catch (e) {
+      // Gestion des erreurs d'inscription
       if (e.code == 'weak-password') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -48,12 +52,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     FirebaseAuth.instance.userChanges().listen((User? user) {
       if (user == null) {
+        // Affiche un message d'erreur si l'inscription échoue
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Erreur lors de l\'inscription.'),
           ),
         );
       } else {
+        // Affiche un message de succès et ajoute l'utilisateur à la base de données
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Inscription réussie. Vous pouvez vous connecter.'),
@@ -64,15 +70,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
           _usernameController.text.toString().trim(),
           _emailController.text.toString().trim(),
           _phoneController.text,
-          [],
+          [], // Liste vide pour les véhicules
         );
-        Navigator.pop(context);
+        Navigator.pop(context); // Retourne à l'écran précédent
       }
     });
   }
 
   @override
   void dispose() {
+    // Libère les ressources des contrôleurs
     _usernameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -85,6 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        // Conception de l'écran d'inscription
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
@@ -94,6 +102,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             children: [
               Container(
+                // Affiche le titre de l'application
                 height: MediaQuery.of(context).size.height * 0.2,
                 alignment: Alignment.center,
                 margin: const EdgeInsets.only(top: 20),
@@ -120,6 +129,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               Expanded(
                 child: Container(
+                  // Formulaire d'inscription
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   decoration: const BoxDecoration(
                     color: Color.fromARGB(255, 0, 124, 173),
@@ -134,7 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       children: <Widget>[
                         const Text(
-                          "INSCRIPTION",
+                          "INSCRIPTION", // Titre du formulaire
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -143,6 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 20),
+                        // Champ pour le nom d'utilisateur
                         TextFormField(
                           controller: _usernameController,
                           clipBehavior: Clip.antiAlias,
@@ -173,6 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 10),
+                        // Champ pour le numéro de téléphone
                         IntlPhoneField(
                           controller: _phoneController,
                           textInputAction: TextInputAction.next,
@@ -194,8 +206,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           style: const TextStyle(color: Colors.white),
-                          initialCountryCode: 'CD',
-                          languageCode: 'fr',
+                          initialCountryCode: 'CD', // Code pays par défaut
+                          languageCode: 'fr', // Langue française
                           // ignore: deprecated_member_use
                           searchText: 'Rechercher un pays',
                           invalidNumberMessage: "Numéro invalide",
@@ -206,6 +218,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
+                        // Champ pour l'email
                         TextFormField(
                           controller: _emailController,
                           clipBehavior: Clip.antiAlias,
@@ -236,6 +249,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 10),
+                        // Champ pour le mot de passe
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscureText,
@@ -258,7 +272,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _obscureText = !_obscureText;
+                                  _obscureText = !_obscureText; // Alterne la visibilité
                                 });
                               },
                             ),
@@ -277,6 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 10),
+                        // Champ pour confirmer le mot de passe
                         TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureText,
@@ -321,12 +336,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
+                        // Bouton pour créer un compte
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
-                                // Perform sign-up action
+                                // Appelle la fonction d'inscription
                                 signupUser();
                               }
                             },
@@ -350,6 +366,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        // Lien pour se connecter
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
@@ -362,7 +379,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pop(context);
+                                Navigator.pop(context); // Retourne à l'écran de connexion
                               },
                               child: const Text(
                                 " Connectez-vous",

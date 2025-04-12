@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:trackerapp/utils/user_services.dart';
 
-// ignore: must_be_immutable
+// Menu pour gérer les véhicules de l'utilisateur
 class VehiclesMenu extends StatefulWidget {
-  final String userEmail;
+  final String userEmail; // Email de l'utilisateur
   final List<String> userVehicles; // Liste des véhicules de l'utilisateur
 
   const VehiclesMenu({
@@ -17,12 +17,14 @@ class VehiclesMenu extends StatefulWidget {
 }
 
 class _VehiclesMenuState extends State<VehiclesMenu> {
+  // Contrôleurs pour les champs de saisie
   final TextEditingController _vehicleController = TextEditingController();
   final TextEditingController _vehiclePlateController = TextEditingController();
   final TextEditingController _gpsArduinoIdController = TextEditingController();
 
-  final _formKey = GlobalKey<FormState>();
-  late List<String> userVehicles = widget.userVehicles;
+  final _formKey = GlobalKey<FormState>(); // Clé pour valider le formulaire
+  late List<String> userVehicles = widget.userVehicles; // Initialisation des véhicules
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +32,7 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
 
   @override
   void dispose() {
+    // Libère les ressources des contrôleurs
     _vehicleController.dispose();
     _vehiclePlateController.dispose();
     _gpsArduinoIdController.dispose();
@@ -39,11 +42,11 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
+      height: MediaQuery.of(context).size.height * 0.9, // Hauteur du menu
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
+        color: Theme.of(context).colorScheme.primary, // Couleur de fond
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -59,13 +62,13 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
           ),
           const SizedBox(height: 20),
           Expanded(
-            // Form to add new vehicle
+            // Formulaire pour ajouter un nouveau véhicule
             child: Form(
               key: _formKey,
               child: ListView(
                 children: [
                   Text(
-                    'Ajouter un véhicule',
+                    'Ajouter un véhicule', // Titre du formulaire
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -74,6 +77,7 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
+                  // Champ pour le nom du véhicule
                   TextFormField(
                     controller: _vehicleController,
                     cursorColor: Colors.white,
@@ -95,6 +99,7 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
                     },
                   ),
                   const SizedBox(height: 20),
+                  // Champ pour la plaque d'immatriculation
                   TextFormField(
                     controller: _vehiclePlateController,
                     cursorColor: Colors.white,
@@ -116,6 +121,7 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
                     },
                   ),
                   const SizedBox(height: 20),
+                  // Champ pour l'ID GPS Arduino
                   TextFormField(
                     controller: _gpsArduinoIdController,
                     cursorColor: Colors.white,
@@ -137,10 +143,11 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
                     },
                   ),
                   const SizedBox(height: 10),
+                  // Bouton pour ajouter le véhicule
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // Ajouter le véhicule à la base de données
+                        // Vérifie si l'utilisateur a déjà un véhicule enregistré
                         if (userVehicles.isEmpty) {
                           addVehicleToUser(
                             _vehicleController.text,
@@ -161,11 +168,11 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
                           return;
                         }
                         Navigator.pop(context);
-                        // Mettre à jour la liste des véhicules de l'utilisateur
+                        // Met à jour la liste des véhicules de l'utilisateur
                         setState(() {
                           userVehicles.add(_vehicleController.text);
                         });
-                        // Afficher un message de succès
+                        // Affiche un message de succès
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
@@ -175,7 +182,7 @@ class _VehiclesMenuState extends State<VehiclesMenu> {
                             backgroundColor: Colors.green,
                           ),
                         );
-                        // Réinitialiser les champs du formulaire
+                        // Réinitialise les champs du formulaire
                         _vehicleController.clear();
                         _vehiclePlateController.clear();
                         _gpsArduinoIdController.clear();

@@ -12,7 +12,7 @@ import 'package:trackerapp/utils/user_services.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
-  final String routeName = '/map';
+  final String routeName = '/map'; // Nom de la route pour cet écran
 
   @override
   // ignore: library_private_types_in_public_api
@@ -23,40 +23,41 @@ class _MapScreenState extends State<MapScreen> {
   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+  // Position initiale de la caméra sur la carte
   static const CameraPosition _initialCameraPosition = CameraPosition(
     target: LatLng(-2.9722139, 25.9196359),
     zoom: 15,
   );
 
   late StreamSubscription<Map<String, double>>? locationStreamSubscription;
-  PositionModel userPosition = PositionModel(latitude: 0, longitude: 0);
-  bool _isDrawingPolygon = false;
-  MapType _mapType = MapType.hybrid;
-  Set<Marker> markers = {};
+  PositionModel userPosition = PositionModel(latitude: 0, longitude: 0); // Position utilisateur
+  bool _isDrawingPolygon = false; // Mode dessin de polygone
+  MapType _mapType = MapType.hybrid; // Type de carte (hybride par défaut)
+  Set<Marker> markers = {}; // Ensemble des marqueurs sur la carte
 
-  // Enregistrer les changements des positions pour le véhicule afin de tracer l'itinéraire (polyline)
-  // ignore: prefer_final_fields
+  // Liste des coordonnées pour tracer une polyline (itinéraire)
   List<LatLng> _polylineCoordinates = [];
-  // ignore: prefer_final_fields
   Set<Polyline> _polylines = {};
 
-  Set<Polygon> _polygons = {};
-  List<LatLng> _polygonLatLngs = [];
-  Timer? _notificationTimer;
-  bool _isOutsideZone = false;
-  final int _notificationFrequency = 60;
+  Set<Polygon> _polygons = {}; // Ensemble des polygones (zones sécurisées)
+  List<LatLng> _polygonLatLngs = []; // Points du polygone
+  Timer? _notificationTimer; // Timer pour les notifications périodiques
+  bool _isOutsideZone = false; // Indique si le véhicule est hors de la zone sécurisée
+  final int _notificationFrequency = 60; // Fréquence des notifications en secondes
 
   @override
   void initState() {
     super.initState();
-    _initializeNotifications();
-    _initializePolygon();
+    _initializeNotifications(); // Initialisation des notifications
+    _initializePolygon(); // Chargement des polygones de sécurité
     locationStreamSubscription = FirestoreDatabaseService().realTimeCoordinatesStream().listen((event) async {
+      // Écoute des changements de position en temps réel
       final PositionModel position = PositionModel(
         latitude: event['lat']!,
         longitude: event['lng']!,
       );
-      // vérifier si le véhicule est dans la zone de sécurité
+
+      // Vérifie si le véhicule est dans la zone sécurisée
       if (_polygonLatLngs.isNotEmpty) {
         bool isInZone = isPointInPolygon(LatLng(position.latitude, position.longitude), _polygonLatLngs);
 
@@ -78,35 +79,33 @@ class _MapScreenState extends State<MapScreen> {
           );
         }
       }
+
       try {
-      // Use await instead of direct casting
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)));
-      setState(() {
-        markers.add(
-          Marker(
-            markerId: const MarkerId('Véhicule'),
-            position: LatLng(position.latitude, position.longitude),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-            infoWindow: const InfoWindow(title: 'Véhicule', snippet: 'Position actuelle'),
-          ),
-        );
-      });
-      controller.showMarkerInfoWindow(const MarkerId('Véhicule'));
-    } catch (e) {
-      debugPrint("Error updating map with vehicle position: $e");
-    }
-  }, onError: (error) {
-    debugPrint("Stream error: $error");
-  }
-    );
+        // Mise à jour de la position du véhicule sur la carte
+        final GoogleMapController controller = await _controller.future;
+        controller.animateCamera(CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)));
+        setState(() {
+          markers.add(
+            Marker(
+              markerId: const MarkerId('Véhicule'),
+              position: LatLng(position.latitude, position.longitude),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+              infoWindow: const InfoWindow(title: 'Véhicule', snippet: 'Position actuelle'),
+            ),
+          );
+        });
+        controller.showMarkerInfoWindow(const MarkerId('Véhicule'));
+      } catch (e) {
+        debugPrint("Erreur lors de la mise à jour de la carte : $e");
+      }
+    }, onError: (error) {
+      debugPrint("Erreur du flux : $error");
+    });
   }
 
+  // Démarre un timer pour envoyer des notifications périodiques
   void _startNotificationTimer() {
-    // Annule le timer précédent s'il existe
-    _stopNotificationTimer();
-
-    // Crée un nouveau timer qui envoie des notifications périodiques
+    _stopNotificationTimer(); // Annule le timer précédent s'il existe
     _notificationTimer = Timer.periodic(Duration(seconds: _notificationFrequency), (timer) {
       if (_isOutsideZone) {
         _showNotification(
@@ -119,6 +118,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  // Arrête le timer des notifications
   void _stopNotificationTimer() {
     _notificationTimer?.cancel();
     _notificationTimer = null;
@@ -126,33 +126,26 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    // Cancel streams first
+    // Annule les abonnements et nettoie les ressources
     if (locationStreamSubscription != null) {
       locationStreamSubscription!.cancel().then((_) {
         locationStreamSubscription = null;
       }).catchError((error) {
-        debugPrint("Error canceling location stream: $error");
+        debugPrint("Erreur lors de l'annulation du flux : $error");
       });
     }
-
-    // Stop timer
     _stopNotificationTimer();
-
-    // Cancel notifications
     flutterLocalNotificationsPlugin.cancelAll();
-
-    // Dispose controller last
     if (!_controller.isCompleted) return super.dispose();
-
     _controller.future.then((controller) {
       controller.dispose();
     }).catchError((error) {
-      debugPrint("Error disposing map controller: $error");
+      debugPrint("Erreur lors de la libération du contrôleur : $error");
     });
-
     super.dispose();
   }
 
+  // Initialise les notifications locales
   void _initializeNotifications() async {
     flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
@@ -166,6 +159,7 @@ class _MapScreenState extends State<MapScreen> {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
+  // Affiche une notification locale
   Future<void> _showNotification(String title, String body) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics = const AndroidNotificationDetails(
       'high_importance_channel',
@@ -177,6 +171,7 @@ class _MapScreenState extends State<MapScreen> {
     await flutterLocalNotificationsPlugin.show(0, title, body, platformChannelSpecifics);
   }
 
+  // Initialise les polygones de sécurité
   void _initializePolygon() async {
     try {
       _polygonLatLngs = await getCurrentUserPolygone();
@@ -187,7 +182,6 @@ class _MapScreenState extends State<MapScreen> {
               Polygon(
                 polygonId: const PolygonId("zone_securisee"),
                 points: _polygonLatLngs,
-                // ignore: deprecated_member_use
                 fillColor: Colors.green.withOpacity(0.3),
                 strokeColor: Colors.green,
                 strokeWidth: 2,
@@ -197,7 +191,7 @@ class _MapScreenState extends State<MapScreen> {
         });
       }
     } catch (e) {
-      debugPrint("Error initializing polygon: $e");
+      debugPrint("Erreur lors de l'initialisation du polygone : $e");
     }
   }
 
@@ -218,7 +212,6 @@ class _MapScreenState extends State<MapScreen> {
         Polygon(
           polygonId: const PolygonId("zone_securisee"),
           points: _polygonLatLngs,
-          // ignore: deprecated_member_use
           fillColor: Colors.green.withOpacity(0.3),
           strokeColor: Colors.green,
           strokeWidth: 2,
@@ -227,6 +220,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  // Vérifie si un point est dans un polygone
   bool isPointInPolygon(LatLng point, List<LatLng> polygon) {
     int intersectCount = 0;
     for (int j = 0; j < polygon.length - 1; j++) {
@@ -236,7 +230,7 @@ class _MapScreenState extends State<MapScreen> {
         intersectCount++;
       }
     }
-    return (intersectCount % 2) == 1; // true if odd (inside), false if even (outside)
+    return (intersectCount % 2) == 1; // true si impair (à l'intérieur), false si pair (à l'extérieur)
   }
 
   bool rayCastIntersect(LatLng point, LatLng vertA, LatLng vertB) {
@@ -278,7 +272,7 @@ class _MapScreenState extends State<MapScreen> {
               },
               color: Colors.white,
             ),
-            // delete polygon
+            // Supprimer le polygone
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.white),
               onPressed: () {
@@ -428,7 +422,7 @@ class _MapScreenState extends State<MapScreen> {
                       latitude: snapshot.data!['lat']!,
                       longitude: snapshot.data!['lng']!,
                     );
-                    // Update the polyline coordinates
+                    // Met à jour les coordonnées de la polyline
                     _polylineCoordinates.add(LatLng(position.latitude, position.longitude));
                     _polylines.add(
                       Polyline(

@@ -2,46 +2,48 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-//  Caching mechanism for user data
+// Mécanisme de mise en cache des données utilisateur
 class UserCache {
-  // ignore: unused_field
-  static String? _userEmail;
+  // Document utilisateur (mis en cache)
   static DocumentSnapshot? _userDocument;
+  // Heure de la dernière mise en cache
   static DateTime? _lastFetchTime;
+  // Durée de validité du cache
   static const Duration _cacheDuration = Duration(minutes: 5);
 
-  static void setUserEmail(String email) {
-    _userEmail = email;
-  }
+  // Définit l'email de l'utilisateur dans le cache
+  static void setUserEmail(String email) {}
 
+  // Définit le document utilisateur dans le cache
   static void setUserDocument(DocumentSnapshot doc) {
     _userDocument = doc;
     _lastFetchTime = DateTime.now();
   }
 
+  // Vérifie si le cache est encore valide
   static bool isCacheValid() {
     if (_userDocument == null || _lastFetchTime == null) return false;
     return DateTime.now().difference(_lastFetchTime!) < _cacheDuration;
   }
 
+  // Efface le cache utilisateur
   static void clearCache() {
-    _userEmail = null;
     _userDocument = null;
     _lastFetchTime = null;
   }
 }
 
-// Optimized getCurrentUser function to prevent repetitive queries
+// Fonction optimisée pour obtenir le document utilisateur actuel
 Future<DocumentSnapshot> getCurrentUserDoc() async {
-  // Use cached document if available
+  // Utilise le document mis en cache si disponible
   if (UserCache.isCacheValid() && UserCache._userDocument != null) {
     return UserCache._userDocument!;
   }
 
-  // Otherwise, fetch from Firebase
+  // Sinon, récupère les données depuis Firebase
   User? user = FirebaseAuth.instance.currentUser;
   if (user == null) {
-    throw Exception("No user is currently signed in.");
+    throw Exception("Aucun utilisateur n'est actuellement connecté.");
   }
 
   String email = user.email ?? "";
@@ -51,15 +53,15 @@ Future<DocumentSnapshot> getCurrentUserDoc() async {
   QuerySnapshot query = await firestore.collection('users').where('email', isEqualTo: email).limit(1).get();
 
   if (query.docs.isEmpty) {
-    throw Exception("No user found with the provided email.");
+    throw Exception("Aucun utilisateur trouvé avec l'email fourni.");
   }
 
-  // Cache the result
+  // Met en cache le résultat
   UserCache.setUserDocument(query.docs.first);
   return query.docs.first;
 }
 
-// Get the current user's ID
+// Récupère l'ID de l'utilisateur actuel
 Future<String> getCurrentUserId() async {
   User? user = FirebaseAuth.instance.currentUser;
   if (user == null) {
@@ -68,7 +70,7 @@ Future<String> getCurrentUserId() async {
   return user.uid;
 }
 
-// Get the current user's email
+// Récupère l'email de l'utilisateur actuel
 Future<String> getCurrentUserEmail() async {
   User? user = FirebaseAuth.instance.currentUser;
   if (user == null) {
@@ -77,25 +79,25 @@ Future<String> getCurrentUserEmail() async {
   return user.email ?? "No email available";
 }
 
-// Get the current user's name
+// Récupère le nom de l'utilisateur actuel
 Future<String> getCurrentUserName() async {
   DocumentSnapshot doc = await getCurrentUserDoc();
   return doc['name'] as String;
 }
 
-// Get the current user's phone number
+// Récupère le numéro de téléphone de l'utilisateur actuel
 Future<String> getCurrentUserPhoneNumber() async {
   DocumentSnapshot doc = await getCurrentUserDoc();
   return doc['phone'] as String;
 }
 
-// Get the current user's list of vehicles
+// Récupère la liste des véhicules de l'utilisateur actuel
 Future<List<String>> getCurrentUserVehicles() async {
   DocumentSnapshot doc = await getCurrentUserDoc();
   return List<String>.from(doc['vehicles']);
 }
 
-// Add a new vehicle to the current user's list of vehicles
+// Ajoute un nouveau véhicule à la liste des véhicules de l'utilisateur actuel
 Future<void> addVehicleToUser(String vehicleName, vehiclePlate, idGpsArduino) async {
   String email = await getCurrentUserEmail();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -111,7 +113,7 @@ Future<void> addVehicleToUser(String vehicleName, vehiclePlate, idGpsArduino) as
   });
 }
 
-// Modify a vehicle in the current user's list of vehicles
+// Modifie un véhicule dans la liste des véhicules de l'utilisateur actuel
 Future<void> modifyVehicleInUser(String oldVehicleName, String newVehicleName) async {
   String email = await getCurrentUserEmail();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -130,22 +132,22 @@ Future<void> modifyVehicleInUser(String oldVehicleName, String newVehicleName) a
   });
 }
 
-// Logout the current user
+// Déconnecte l'utilisateur actuel
 Future<void> logoutUser() async {
   await FirebaseAuth.instance.signOut();
 }
 
-// Save polygone'user safety to firestore
+// Sauvegarde les coordonnées d'un polygone de sécurité dans Firestore
 Future<void> savePolygonCoordinates(List<LatLng> polygonLatLngs) async {
   String email = await getCurrentUserEmail();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   QuerySnapshot query = await firestore.collection('users').where('email', isEqualTo: email).limit(1).get();
 
   if (query.docs.isEmpty) {
-    throw Exception("No user found with the provided email.");
+    throw Exception("Aucun utilisateur trouvé avec l'email fourni.");
   }
 
-  // Convertir les LatLng en liste de maps contenant lat/lng
+  // Convertit les LatLng en liste de maps contenant latitude/longitude
   List<Map<String, double>> serializedPolygon = polygonLatLngs
       .map((point) => {
             'latitude': point.latitude,
@@ -159,7 +161,7 @@ Future<void> savePolygonCoordinates(List<LatLng> polygonLatLngs) async {
   });
 }
 
-// Get current user polygones safaty zone
+// Récupère les polygones de zone de sécurité de l'utilisateur actuel
 Future<List<LatLng>> getCurrentUserPolygone() async {
   String email = await getCurrentUserEmail();
   FirebaseFirestore firestore = FirebaseFirestore.instance;

@@ -16,8 +16,8 @@
 #define TINY_GSM_RX_BUFFER 512
 
 // Informations Firebase
-const char FIREBASE_HOST[] = "v-tracker-c8eb6-default-rtdb.firebaseio.com"; // Hôte Firebase
-const String FIREBASE_AUTH = "1oG47yey1qpkEeP0iuytZ7euWZrwMD6DHk3fqS1O";    // Clé d'authentification Firebase
+const char FIREBASE_HOST[] = " "; // Hôte Firebase
+const String FIREBASE_AUTH = " ";    // Clé d'authentification Firebase
 const String FIREBASE_PATH = "/";                                           // Chemin Firebase
 const int SSL_PORT = 443;                                                   // Port SSL pour HTTPS
 
